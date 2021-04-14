@@ -36,7 +36,7 @@ class Calculator:
         count = 0
         day = dt.datetime.now().date()
         for i in self.records:
-            if -1 < (day-i.date).days < 7:
+            if -1 < (day - i.date).days < 7:
                 count = count + i.amount
         return count
 
