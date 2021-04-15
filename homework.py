@@ -36,6 +36,11 @@ class Calculator:
         val = [i.amount for i in self.records if -1 < (day - i.date).days < 7]
         return sum(val)
 
+    def res(self):
+        """Подсчет остатка."""
+        current = self.get_today_stats()
+        return self.limit - current
+
 
 class CashCalculator(Calculator):
     """Класс - калькулятор денег."""
@@ -44,28 +49,22 @@ class CashCalculator(Calculator):
 
     def get_today_cash_remained(self, currency):
         """Метод определения остатка денег."""
-        ans = ''
-        curr = {'rub': [1, 'руб'],
-                'usd': [CashCalculator.USD_RATE, 'USD'],
-                'eur': [CashCalculator.EURO_RATE, 'Euro']}
-        currency_rate, currency_name = curr[currency]
-        current = self.get_today_stats()
-        current = current / currency_rate
-        lim = self.limit / currency_rate
-        res = lim - current
-        if res > 0:
-            remainder = round(res, 2)
-            ans = f'На сегодня осталось {remainder} {currency_name}'
-        elif res == 0:
-            ans = 'Денег нет, держись'
+        if self.res() == 0:
+            return 'Денег нет, держись'
         else:
-            remainder = round(res * (-1), 2)
-            ans = (f'Денег нет, держись: твой долг - {remainder} '
-                   f'{currency_name}')
-        if ans != '':
-            return ans
-        else:
-            return None
+            curr = {'rub': [1, 'руб'],
+                    'usd': [CashCalculator.USD_RATE, 'USD'],
+                    'eur': [CashCalculator.EURO_RATE, 'Euro']}
+            currency_rate, currency_name = curr[currency]
+            current = self.get_today_stats()
+            current = current / currency_rate
+            lim = self.limit / currency_rate
+            remainder = round(abs(lim - current), 2)
+            if self.res() > 0:
+                return f'На сегодня осталось {remainder} {currency_name}'
+            else:
+                return (f'Денег нет, держись: твой долг - {remainder} '
+                        f'{currency_name}')
 
 
 class CaloriesCalculator(Calculator):
@@ -73,15 +72,8 @@ class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
         """Метод определения остатка калорий."""
-        ans = ''
-        current = self.get_today_stats()
-        res = self.limit - current
-        if res > 0:
-            ans = ('Сегодня можно съесть что-нибудь ещё, '
-                   f'но с общей калорийностью не более {res} кКал')
+        if self.res() > 0:
+            return ('Сегодня можно съесть что-нибудь ещё, '
+                    f'но с общей калорийностью не более {self.res()} кКал')
         else:
-            ans = 'Хватит есть!'
-        if ans != '':
-            return ans
-        else:
-            return None
+            return 'Хватит есть!'
