@@ -59,9 +59,8 @@ class CashCalculator(Calculator):
         remainder = round(abs(res / currency_rate), 2)
         if res > 0:
             return f'На сегодня осталось {remainder} {currency_name}'
-        else:
-            return (f'Денег нет, держись: твой долг - {remainder} '
-                    f'{currency_name}')
+        return (f'Денег нет, держись: твой долг - {remainder} '
+                f'{currency_name}')
 
 
 class CaloriesCalculator(Calculator):
