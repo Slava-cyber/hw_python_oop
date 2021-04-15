@@ -3,11 +3,13 @@ import datetime as dt
 
 class Record:
     """Класс для объектов ввода данных."""
-    def __init__(self, amount, comment, date=dt.datetime.now().date()):
+    def __init__(self, amount, comment, date=None):
         self.amount = amount
         self.comment = comment
         self.date = date
-        if type(self.date) == str:
+        if self.date is None:
+            self.date = dt.date.today()
+        else:
             date_format = '%d.%m.%Y'
             self.date = dt.datetime.strptime(self.date, date_format).date()
 
@@ -25,20 +27,24 @@ class Calculator:
     def get_today_stats(self):
         """Метод для вычисления дневного расхода денег/калорий."""
         count = 0
-        day = dt.datetime.now().date()
-        for i in self.records:
-            if i.date == day:
-                count = count + i.amount
-        return count
+        day = dt.date.today()
+        val = [i.amount for i in self.records if i.date == day]
+        count = sum(val)
+        if count is None:
+            return None
+        else:
+            return count
 
     def get_week_stats(self):
         """Метод для определения трат денег/калорий за последний 7 дней."""
         count = 0
-        day = dt.datetime.now().date()
-        for i in self.records:
-            if -1 < (day - i.date).days < 7:
-                count = count + i.amount
-        return count
+        day = dt.date.today()
+        val = [i.amount for i in self.records if -1 < (day - i.date).days < 7]
+        count = sum(val)
+        if count is None:
+            return None
+        else:
+            return count
 
 
 class CashCalculator(Calculator):
@@ -49,23 +55,14 @@ class CashCalculator(Calculator):
     def get_today_cash_remained(self, currency):
         """Метод определения остатка денег."""
         ans = ''
-        index = ''
-        current = 0
-        day = dt.datetime.now()
-        for i in self.records:
-            if i.date == day.date():
-                current = current + i.amount
-        if currency == 'usd':
-            current = current / CashCalculator.USD_RATE
-            lim = self.limit / CashCalculator.USD_RATE
-            index = 'USD'
-        elif currency == 'eur':
-            current = current / CashCalculator.EURO_RATE
-            lim = self.limit / CashCalculator.EURO_RATE
-            index = 'Euro'
-        else:
-            lim = self.limit
-            index = 'руб'
+        curr = {}
+        curr["rub"] = [1, 'руб']
+        curr["usd"] = [CashCalculator.USD_RATE, 'USD']
+        curr["eur"] = [CashCalculator.EURO_RATE, 'Euro']
+        current = self.get_today_stats()
+        current = current / curr[currency][0]
+        lim = self.limit / curr[currency][0]
+        index = curr[currency][1]
         if current < lim:
             remainder = round(lim - current, 2)
             ans = f'На сегодня осталось {remainder} {index}'
@@ -86,14 +83,10 @@ class CaloriesCalculator(Calculator):
     def get_calories_remained(self):
         """Метод определения остатка калорий."""
         ans = ''
-        current = 0
-        day = dt.datetime.now()
-        for i in self.records:
-            if i.date == day.date():
-                current = current + i.amount
+        current = self.get_today_stats()
         if current < self.limit:
             remainder = self.limit - current
-            ans = (f'Сегодня можно съесть что-нибудь ещё, '
+            ans = ('Сегодня можно съесть что-нибудь ещё, '
                    f'но с общей калорийностью не более {remainder} кКал')
         else:
             ans = 'Хватит есть!'
