@@ -36,7 +36,7 @@ class Calculator:
         val = [i.amount for i in self.records if -1 < (day - i.date).days < 7]
         return sum(val)
 
-    def res(self):
+    def residue(self):
         """Подсчет остатка."""
         current = self.get_today_stats()
         return self.limit - current
@@ -49,22 +49,19 @@ class CashCalculator(Calculator):
 
     def get_today_cash_remained(self, currency):
         """Метод определения остатка денег."""
-        if self.res() == 0:
+        res = self.residue()
+        if res == 0:
             return 'Денег нет, держись'
+        curr = {'rub': (1, 'руб'),
+                'usd': (CashCalculator.USD_RATE, 'USD'),
+                'eur': (CashCalculator.EURO_RATE, 'Euro')}
+        currency_rate, currency_name = curr[currency]
+        remainder = round(abs(res / currency_rate), 2)
+        if res > 0:
+            return f'На сегодня осталось {remainder} {currency_name}'
         else:
-            curr = {'rub': [1, 'руб'],
-                    'usd': [CashCalculator.USD_RATE, 'USD'],
-                    'eur': [CashCalculator.EURO_RATE, 'Euro']}
-            currency_rate, currency_name = curr[currency]
-            current = self.get_today_stats()
-            current = current / currency_rate
-            lim = self.limit / currency_rate
-            remainder = round(abs(lim - current), 2)
-            if self.res() > 0:
-                return f'На сегодня осталось {remainder} {currency_name}'
-            else:
-                return (f'Денег нет, держись: твой долг - {remainder} '
-                        f'{currency_name}')
+            return (f'Денег нет, держись: твой долг - {remainder} '
+                    f'{currency_name}')
 
 
 class CaloriesCalculator(Calculator):
@@ -72,8 +69,8 @@ class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
         """Метод определения остатка калорий."""
-        if self.res() > 0:
+        res = self.residue()
+        if res > 0:
             return ('Сегодня можно съесть что-нибудь ещё, '
-                    f'но с общей калорийностью не более {self.res()} кКал')
-        else:
-            return 'Хватит есть!'
+                    f'но с общей калорийностью не более {res} кКал')
+        return 'Хватит есть!'
